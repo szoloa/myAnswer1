@@ -4,4 +4,4 @@ def feb(n):
     return feb(n-1) + feb(n-2)
 n = int(input())
 for i in range(1,n+1):
-    print(feb(n))
+    print(feb(i))
