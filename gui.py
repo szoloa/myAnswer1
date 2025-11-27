@@ -55,31 +55,31 @@ class PaperGenerator(QWidget):
         count_layout = QHBoxLayout()
         count_layout.addWidget(QLabel("选择题数量:"))
         self.choice_count = QSpinBox()
-        self.choice_count.setRange(0, 100)
+        self.choice_count.setRange(0, 2000)
         self.choice_count.setValue(20)
         count_layout.addWidget(self.choice_count)
         
         count_layout.addWidget(QLabel("判断题数量:"))
         self.judge_count = QSpinBox()
-        self.judge_count.setRange(0, 100)
+        self.judge_count.setRange(0, 2000)
         self.judge_count.setValue(10)
         count_layout.addWidget(self.judge_count)
         
         count_layout.addWidget(QLabel("填空题数量:"))
         self.full_empty_count = QSpinBox()
-        self.full_empty_count.setRange(0, 100)
+        self.full_empty_count.setRange(0, 2000)
         self.full_empty_count.setValue(5)
         count_layout.addWidget(self.full_empty_count)
 
         count_layout.addWidget(QLabel("名词解释数量:"))
         self.name_explain_count = QSpinBox()
-        self.name_explain_count.setRange(0, 100)
+        self.name_explain_count.setRange(0, 2000)
         self.name_explain_count.setValue(5)
         count_layout.addWidget(self.name_explain_count)
         
         count_layout.addWidget(QLabel("论述题数量:"))
         self.short_answer_count = QSpinBox()
-        self.short_answer_count.setRange(0, 100)
+        self.short_answer_count.setRange(0, 2000)
         self.short_answer_count.setValue(5)
         count_layout.addWidget(self.short_answer_count)
 
@@ -312,13 +312,13 @@ class PaperGenerator(QWidget):
             <title>{title}</title>
             <style>
                 body {{ font-family: sans-serif; margin: 20px; }}
-                h1 {{ text-align: center; color: #2c3e50; }}
+                h1 {{ text-align: center; }}
                 .question {{ margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }}
-                .question-number {{ font-weight: bold; color: #3498db; }}
+                .question-number {{  }}
                 .options {{ margin-left: 20px; }}
                 .option {{ margin-bottom: 5px; }}
-                .answer {{ color: #27ae60; font-weight: bold; margin-top: 5px; }}
-                .analysis {{ color: #fffcfd; font-style: italic; margin-top: 5px; }}
+                .answer {{ font-weight: bold; margin-top: 5px; }}
+                .analysis {{ font-style: italic; margin-top: 5px; }}
                 .section {{ margin-top: 30px; }}
             </style>
         </head>
@@ -378,7 +378,7 @@ class PaperGenerator(QWidget):
                 html_content += f'<div class="stem">{html.escape(question["stem"])}</div>'
                 
                 if include_analysis:
-                    html_content += f'<div class="answer">答案: {" ".join(eval(question['answer']))}</div>'
+                    html_content += f'<div class="answer">答案: {" ".join(eval(question["answer"])) if "[" in question["answer"] else question["answer"]}</div>'
                     if question['analysis']:
                         html_content += f'<div class="analysis">解析: {soup(question["analysis"], "lxml").text}</div>'
                 
@@ -396,6 +396,8 @@ class PaperGenerator(QWidget):
                     html_content += f'<div class="answer">答案: {html.escape(question["answer"])}</div>'
                     if question['analysis']:
                         html_content += f'<div class="analysis">解析: {soup(question["analysis"], "lxml").text}</div>'
+                else:
+                    html_content += '<div><br><br><br><br></div>'
                 
                 html_content += '</div>'
             html_content += '</div>'
@@ -407,12 +409,13 @@ class PaperGenerator(QWidget):
                 html_content += f'<div class="question">'
                 html_content += f'<div class="question-number">{i}. 题目ID {question["id"]}</div>'
                 html_content += f'<div class="stem">{html.escape(question["stem"])}</div>'
-                
+
                 if include_analysis:
                     html_content += f'<div class="answer">答案: {question["answer"]}</div>'
                     if question['analysis']:
                         html_content += f'<div class="analysis">解析: {soup(question["analysis"], "lxml").text}</div>'
-                
+                else:
+                    html_content += '<div><br><br><br><br></div>'
                 html_content += '</div>'
             html_content += '</div>'
         
@@ -888,9 +891,10 @@ class questionManager(QWidget):
 
 class PracticeWidget(QWidget):
     """练习组件"""
-    def __init__(self, db_manager, parent=None):
+    def __init__(self, db_manager, errorbook , parent=None):
         super().__init__(parent)
         self.db_manager = db_manager
+        self.errorbook = errorbook
         self.question_widget = questionWidget()
         self.init_ui()
         
@@ -979,6 +983,9 @@ class PracticeWidget(QWidget):
         else:
             question = self.db_manager.get_random_question(bankid, chapter, question_type)
         if question:
+            print(question['id'])
+            if question['id'] in self.errorbook.get_all_correct_num():
+                self.next_question()
             self.question_widget.set_question(question)
             self.question_widget.analysis_text.setText('')
         else:
@@ -1002,6 +1009,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.db_manager = Questions('ask.db')
+        self.errorbook = errorbook.Error('errorbook.db')
         self.init_ui()
         
     def init_ui(self):
@@ -1041,7 +1049,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tabs)
         
         # 练习页面
-        self.practice_widget = PracticeWidget(self.db_manager)
+        self.practice_widget = PracticeWidget(self.db_manager, self.errorbook)
         self.tabs.addTab(self.practice_widget, "练习")
         
         # 管理页面

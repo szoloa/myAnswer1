@@ -43,10 +43,12 @@ class Error:
     def get_correct_num(self):
         self.cursor.execute('select questionid from errors where iscorrect = 1')
         return len(self.cursor.fetchall())
-
+    def get_all_correct_num(self):
+        self.cursor.execute('select questionid from errors where iscorrect = 1')
+        return [i[0] for i in self.cursor.fetchall()]
 
 
 if __name__ == '__main__':
     e = Error()
-    print(e.get_discorrect_num())
+    print(e.get_all_correct_num())
  

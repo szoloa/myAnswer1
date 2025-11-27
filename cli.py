@@ -11,7 +11,7 @@ parser.add_argument('--add', action='store_true', help='添加题目')
 parser.add_argument('--get', type=int, help='根据ID获取题目')
 parser.add_argument('--delete', type=int, help='根据ID删除题目')
 parser.add_argument('--list', action='store_true', help='列出所有题目')
-parser.add_argument('--db', type=str, default='ask.db', help='数据库文件名')
+parser.add_argument('--db', type=str, default='/home/kina/temp/code/python/others/ask.db', help='数据库文件名')
 
 # 添加题目参数
 parser.add_argument('--stem', type=str, help='题干')
